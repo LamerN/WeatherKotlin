@@ -11,6 +11,7 @@ import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import org.json.JSONObject
 import java.net.URL
 
 
@@ -35,8 +36,8 @@ class MainActivity : AppCompatActivity() {
                 val key:String = "d413d0e786af04c647891498baac4b66"
                 var city:String = editTextCity?.text?.toString()!!.trim()
                 var url:String = "https://api.openweathermap.org/data/2.5/weather?q=$city&appid=$key&units=metric&lang=ru"
-
                 requestWeatherData(url)
+
 
             }
         }
@@ -47,12 +48,27 @@ class MainActivity : AppCompatActivity() {
         val queue = Volley.newRequestQueue(this)
         val request = StringRequest(Request.Method.GET, url,
             {
-                    result -> Log.d("MyLog", result.toString())
+                    result -> parseWeatherData(result)
             },
             {
-                    error -> Log.d("MyLog", error.toString())
+                    error -> Toast.makeText(this, "Проверьте правильность введенного названия", Toast.LENGTH_LONG).show()
             }
         )
         queue.add(request)
+    }
+
+    private fun parseWeatherData(mainData:String) {
+        var data = JSONObject(mainData)
+        var description = data.getJSONArray("weather").getJSONObject(0).getString("description")
+        var temp = data.getJSONObject("main").getDouble("temp")
+        var feelsLike = data.getJSONObject("main").getDouble("feels_like")
+        var pressure = data.getJSONObject("main").getInt("pressure")
+        var windSpeed = data.getJSONObject("wind").getDouble("speed")
+
+        textViewWeather?.setText("$description\n"+
+                "температура: $temp°C\n" +
+                "ощущается как: $feelsLike°C\n" +
+                "давление: $pressure мм.рт.ст.\n" +
+                "скорость ветра: $windSpeed м/с")
     }
 }
